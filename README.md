@@ -1,0 +1,1 @@
+An implementation of the Lox programming language from [http://www.craftinginterpreters.com/](Crafting Interpreters).
