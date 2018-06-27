@@ -78,6 +78,15 @@ public class Scanner {
                 }else{
                     addToken(SLASH);
                 }
+                break;
+            /* Handle whitespace and newlines */
+            case ' ':
+            case '\r':
+            case '\t':
+                break;
+            case '\n':
+                line++;
+                break;
 
             default:
                 Lox.error(line, "Unexpected character.");
