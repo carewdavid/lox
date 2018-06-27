@@ -41,6 +41,9 @@ public class Scanner {
             case '{':
                 addToken(LBRACE);
                 break;
+            case '}':
+                addToken(RBRACE);
+                break;
             case ',':
                 addToken(COMMA);
                 break;
