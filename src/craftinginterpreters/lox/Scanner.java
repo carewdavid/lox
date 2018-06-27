@@ -91,9 +91,34 @@ public class Scanner {
                 line++;
                 break;
 
+            case '"':
+                string();
+                break;
             default:
                 Lox.error(line, "Unexpected character.");
                 break;
+        }
+    }
+
+    private void string(){
+        while(peek() != '"' && !isAtEnd()){
+            /* Increment line position in multiline strings */
+            if (peek() == '\n') {
+                line++;
+            }
+            advance();
+
+            if (isAtEnd()) {
+               Lox.error(line, "Unterminated string.");
+               return;
+            }
+
+            /* Consume closing '"' */
+            advance();
+
+            String val = source.substring(start+1, current-1);
+            addToken(STRING, val);
+
         }
     }
 
