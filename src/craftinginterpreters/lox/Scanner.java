@@ -95,7 +95,11 @@ public class Scanner {
                 string();
                 break;
             default:
-                Lox.error(line, "Unexpected character.");
+                if(isDigit(c)){
+                    number();
+                }else {
+                    Lox.error(line, "Unexpected character.");
+                }
                 break;
         }
     }
@@ -120,6 +124,22 @@ public class Scanner {
             addToken(STRING, val);
 
         }
+    }
+
+    private void number(){
+        while (isDigit(peek())){
+            advance();
+        }
+
+        if(peek() == '.' && isDigit(peekNext())){
+            advance();
+        }
+
+        while (isDigit(peek())) {
+            advance();
+        }
+
+        addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
     }
 
     private char advance() {
@@ -149,6 +169,14 @@ public class Scanner {
         }
     }
 
+    /* Turns put we need 2 characters of lookahead :( */
+    private char peekNext(){
+        if (current + 1 >= source.length()){
+            return '\0';
+        }
+        return source.charAt(current+1);
+    }
+
     private void addToken(TokenType type) {
         addToken(type, null);
     }
@@ -160,5 +188,10 @@ public class Scanner {
 
     private boolean isAtEnd() {
         return current >= source.length();
+    }
+
+    /* Check if c is an ASCII digit - no unicode here */
+    private boolean isDigit(char c){
+        return c >= '0' && c <= '9';
     }
 }
