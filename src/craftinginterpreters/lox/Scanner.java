@@ -20,7 +20,7 @@ public class Scanner {
     }
 
     protected List<Token> scanTokens() {
-        while (!isAtEnd()){
+        while (!isAtEnd()) {
             start = current;
             scanToken();
         }
@@ -28,53 +28,67 @@ public class Scanner {
         return tokens;
     }
 
-    private void scanToken(){
+    private void scanToken() {
         char c = advance();
 
-        switch (c){
-            case '(': addToken(LPAREN);
-            break;
-            case ')': addToken(RPAREN);
-            break;
-            case '{': addToken(LBRACE);
-            break;
-            case ',': addToken(COMMA);
-            break;
-            case '.': addToken(DOT);
-            break;
-            case '-': addToken(MINUS);
-            break;
-            case '+': addToken(PLUS);
-            break;
-            case '*': addToken(STAR);
-            break;
-            case ';': addToken(SEMICOLON);
+        switch (c) {
+            case '(':
+                addToken(LPAREN);
                 break;
-            case '!': addToken(match('=') ? BANGEQ : BANG);
+            case ')':
+                addToken(RPAREN);
                 break;
-            case '=': addToken(match('=') ? EQEQ : EQ);
+            case '{':
+                addToken(LBRACE);
                 break;
-            case '>': addToken(match('=') ? GREATEREQ : GREATER);
+            case ',':
+                addToken(COMMA);
                 break;
-            case '<': addToken(match('=') ? LESSEQ : LESS);
+            case '.':
+                addToken(DOT);
+                break;
+            case '-':
+                addToken(MINUS);
+                break;
+            case '+':
+                addToken(PLUS);
+                break;
+            case '*':
+                addToken(STAR);
+                break;
+            case ';':
+                addToken(SEMICOLON);
+                break;
+            case '!':
+                addToken(match('=') ? BANGEQ : BANG);
+                break;
+            case '=':
+                addToken(match('=') ? EQEQ : EQ);
+                break;
+            case '>':
+                addToken(match('=') ? GREATEREQ : GREATER);
+                break;
+            case '<':
+                addToken(match('=') ? LESSEQ : LESS);
                 break;
 
-            default: Lox.error(line, "Unexpected character.");
-            break;
+            default:
+                Lox.error(line, "Unexpected character.");
+                break;
         }
     }
 
-    private char advance(){
+    private char advance() {
         current++;
         return source.charAt(current - 1);
     }
 
-    private boolean match(char expected){
-        if(isAtEnd()){
+    private boolean match(char expected) {
+        if (isAtEnd()) {
             return false;
         }
 
-        if(source.charAt(current) != expected){
+        if (source.charAt(current) != expected) {
             return false;
         }
 
@@ -82,16 +96,16 @@ public class Scanner {
         return true;
     }
 
-    private void addToken(TokenType type){
+    private void addToken(TokenType type) {
         addToken(type, null);
     }
 
-    private void addToken(TokenType type, Object literal){
+    private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, current);
         tokens.add(new Token(type, text, literal, line));
     }
 
-    private boolean isAtEnd(){
+    private boolean isAtEnd() {
         return current >= source.length();
     }
 }
