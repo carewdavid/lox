@@ -43,6 +43,20 @@ public class Parser {
         return expr;
     }
 
+    /* addition -> multiplication ( ( "+" | "-" ) multiplication )* */
+    private Expr addition(){
+        Expr expr = multiplication();
+
+        while (match(PLUS, MINUS)){
+            Token op = previous();
+            Expr right = multiplication();
+            expr = new Expr.Binary(expr, op, right);
+        }
+
+        return expr;
+    }
+
+
     /* Advance if next token is one of types */
     private boolean match(TokenType... types){
         for (TokenType type : types){
