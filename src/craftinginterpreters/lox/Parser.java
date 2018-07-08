@@ -56,6 +56,18 @@ public class Parser {
         return expr;
     }
 
+    /* multiplication -> unary ( ( "*" | "/" ) unary)* */
+    private Expr multiplication(){
+        Expr expr = unary();
+
+        while (match(STAR, SLASH)){
+            Token op = previous();
+            Expr right = unary();
+            expr = new Expr.Binary(expr, op, right);
+        }
+
+        return expr;
+    }
 
     /* Advance if next token is one of types */
     private boolean match(TokenType... types){
