@@ -42,4 +42,48 @@ public class Parser {
 
         return expr;
     }
+
+    /* Advance if next token is one of types */
+    private boolean match(TokenType... types){
+        for (TokenType type : types){
+            if (check(type)){
+                advance();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /* Check if the next token is type */
+    private boolean check(TokenType type){
+        if (isAtEnd()){
+            return false;
+        }
+
+        return peek().type == type;
+    }
+
+    /* Consume the next token of input */
+    private Token advance(){
+        if (!isAtEnd()){
+            current++;
+        }
+
+        return previous();
+    }
+
+    private boolean isAtEnd(){
+        return peek().type == EOF;
+    }
+
+    /* Return the next token of input, but do not consume it */
+    private Token peek(){
+        return tokens.get(current);
+    }
+
+    /* Return the last token seen */
+    private Token previous(){
+        return tokens.get(current - 1);
+    }
 }
