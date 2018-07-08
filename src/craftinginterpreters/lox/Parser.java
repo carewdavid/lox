@@ -69,6 +69,22 @@ public class Parser {
         return expr;
     }
 
+    /*
+       unary -> ( "!" | "-" ) unary
+       unary -> primary
+     */
+    private Expr unary(){
+       if (match(BANG, MINUS)){
+           Token op = previous();
+           return new Expr.Unary(op, unary());
+       }else {
+           return primary();
+       }
+
+    }
+
+
+
     /* Advance if next token is one of types */
     private boolean match(TokenType... types){
         for (TokenType type : types){
