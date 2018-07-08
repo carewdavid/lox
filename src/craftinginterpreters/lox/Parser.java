@@ -12,7 +12,21 @@ public class Parser {
         this.tokens = tokens;
     }
 
+    /* expression -> equality */
     private Expr expression(){
-        equality();
+        return equality();
+    }
+
+    /* equality -> comparison ( ( "!=" | "==" ) comparison )* */
+    private Expr equality(){
+        Expr expr = comparison();
+
+        while (match(BANGEQ, EQEQ)){
+            Token op = previous();
+            Expr right = comparison();
+            expr = new Expr.Binary(expr, op, right);
+        }
+
+        return expr;
     }
 }
