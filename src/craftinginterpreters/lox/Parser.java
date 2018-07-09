@@ -15,6 +15,15 @@ public class Parser {
         this.tokens = tokens;
     }
 
+    protected Expr parse(){
+        try {
+            return expression();
+
+        }catch (ParseError error){
+            return null;
+        }
+    }
+
     /* expression -> equality */
     private Expr expression(){
         return equality();
@@ -108,6 +117,7 @@ public class Parser {
             consume(RPAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+        throw error(peek(), "Expect expression");
     }
 
     /* Advance if next token is one of types */
