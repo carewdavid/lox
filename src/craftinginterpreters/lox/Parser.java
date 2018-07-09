@@ -82,8 +82,30 @@ public class Parser {
        }
 
     }
+    /* primary -> NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" */
+    private Expr primary(){
+        if (match(FALSE)){
+            return new Expr.Literal(false);
+        }
 
+        if (match(TRUE)){
+            return new Expr.Literal(true);
+        }
 
+        if (match(NIL)){
+            return new Expr.Literal(null);
+        }
+
+        if (match(NUMBER, STRING)){
+            return new Expr.Literal(previous().literal);
+        }
+
+        if (match(LPAREN)){
+            Expr expr = expression();
+            consume(RPAREN, "Expect ')' after expression.");
+            return new Expr.Grouping(expr);
+        }
+    }
 
     /* Advance if next token is one of types */
     private boolean match(TokenType... types){
