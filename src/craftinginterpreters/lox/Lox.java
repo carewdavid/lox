@@ -49,10 +49,13 @@ public class Lox {
         /* NB: This is a custom scanner, _not_ java.util's Scanner */
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Expr expr = parser.parse();
 
-        for(Token tok: tokens){
-            System.out.println(tok);
+        if (hadError){
+            return;
         }
+        System.out.println(new AstPrinter().print(expr));
     }
 
     protected static void error(int line, String msg){
