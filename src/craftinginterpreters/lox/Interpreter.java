@@ -9,10 +9,13 @@ public class Interpreter implements Expr.Visitor<Object> {
         switch (expr.operator.type) {
             /* Arithmetic */
             case MINUS:
+                checkBinaryOperands(expr.operator, left, right);
                 return (double)left - (double)right;
             case SLASH:
+                checkBinaryOperands(expr.operator, left, right);
                 return (double)left / (double)right;
             case STAR:
+                checkBinaryOperands(expr.operator, left, right);
                 return (double)left * (double)right;
             case PLUS:
                 /* '+' is overloaded for addition and string concatenation. I'm going to break
@@ -25,6 +28,7 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof String || right instanceof String) {
                     return left.toString() + right.toString();
                 }
+                throw new RuntimeError(expr.operator, "Operands must be numbers or strings.");
             case GREATER:
                 return (double)left > (double)right;
             case GREATEREQ:
@@ -38,6 +42,23 @@ public class Interpreter implements Expr.Visitor<Object> {
             case EQEQ:
                 return isEqual(left, right);
         }
+    }
+
+    private void checkUnaryOperand(Token operator, Object operand){
+        if (operand instanceof Double) {
+            return;
+        } else {
+            throw new RuntimeError(operator, "Operand must be a number.");
+        }
+    }
+
+    private void checkBinaryOperands(Token operator, Object left, Object right) {
+        if (left instanceof Double && right instanceof Double) {
+            return;
+        } else {
+            throw new RuntimeError(operator, "Operands must be numbers.");
+        }
+
     }
 
     private boolean isEqual(Object l, Object r){
@@ -72,6 +93,7 @@ public class Interpreter implements Expr.Visitor<Object> {
 
         switch (expr.operator.type){
             case MINUS:
+                checkUnaryOperand(expr.operator, right);
                 return -(double)right;
             case BANG:
                 return isTruthy(right);
