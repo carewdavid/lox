@@ -33,7 +33,23 @@ public class Interpreter implements Expr.Visitor<Object> {
                 return (double)left > (double)right;
             case LESSEQ:
                 return (double)left >= (double)right;
+            case BANGEQ:
+                return !isEqual(left, right);
+            case EQEQ:
+                return isEqual(left, right);
         }
+    }
+
+    private boolean isEqual(Object l, Object r){
+        if (l == null && r == null){
+            return true;
+        }
+
+        if (l == null){
+            return false;
+        }
+
+        return l.equals(r);
     }
 
     @Override
