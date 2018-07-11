@@ -34,4 +34,15 @@ public class Interpreter implements Expr.Visitor<Object> {
         }
 
     }
+
+    /* Nil and false are falsey, everything else is truthy */
+    private boolean isTruthy(Object obj){
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof Boolean){
+            return (boolean)obj;
+        }
+        return true;
+    }
 }
