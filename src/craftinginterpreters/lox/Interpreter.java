@@ -1,6 +1,33 @@
 package craftinginterpreters.lox;
 
 public class Interpreter implements Expr.Visitor<Object> {
+    public void interpret(Expr expr){
+        try {
+            Object val = evaluate(expr);
+            System.out.println(stringify(value));
+        } catch (RuntimeError err) {
+            Lox.runtimeError(err);
+        }
+    }
+
+    /* Convert a lox object to a string */
+    private String stringify(Object obj){
+        if (obj == null){
+            return "nil";
+        }
+
+        if (obj instanceof Double) {
+            String text = obj.toString();
+            /* Strip off decimal point for whole numbers */
+            if (text.endsWith(".0")) {
+                text = text.substring(0, text.length() - 2);
+            }
+            return text;
+        }
+
+        return obj.toString();
+    }
+
     @Override
     public Object visitBinaryExpr(Expr.Binary expr) {
         Object left = evaluate(expr.left);
