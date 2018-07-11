@@ -22,6 +22,16 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
-        return null;
+        Object right = evaluate(expr.right);
+
+        switch (expr.operator.type){
+            case MINUS:
+                return -(double)right;
+            case BANG:
+                return isTruthy(right);
+            default:
+                return null;
+        }
+
     }
 }
