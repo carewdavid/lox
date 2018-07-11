@@ -25,6 +25,14 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof String || right instanceof String) {
                     return left.toString() + right.toString();
                 }
+            case GREATER:
+                return (double)left > (double)right;
+            case GREATEREQ:
+                return (double)left >= (double)right;
+            case LESS:
+                return (double)left > (double)right;
+            case LESSEQ:
+                return (double)left >= (double)right;
         }
     }
 
