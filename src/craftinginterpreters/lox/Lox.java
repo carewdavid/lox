@@ -12,6 +12,7 @@ import java.util.List;
 public class Lox {
     private static boolean hadError = false;
     private static boolean hadRuntimeError = false;
+    private static final Interpreter interpreter = new Interpreter();
 
     public static void main(String[] args) throws IOException{
         if(args.length > 1) {
@@ -59,7 +60,7 @@ public class Lox {
         if (hadError){
             return;
         }
-        System.out.println(new AstPrinter().print(expr));
+        interpreter.interpret(expr);
     }
 
     protected static void error(int line, String msg){

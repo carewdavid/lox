@@ -145,6 +145,7 @@ public class Scanner {
             advance();
 
             String val = source.substring(start+1, current-1);
+            System.out.printf("Scanned string %s, from position %d to %d\n", val, start+1, current-1);
             addToken(STRING, val);
 
         }

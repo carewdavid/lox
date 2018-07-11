@@ -4,7 +4,7 @@ public class Interpreter implements Expr.Visitor<Object> {
     public void interpret(Expr expr){
         try {
             Object val = evaluate(expr);
-            System.out.println(stringify(value));
+            System.out.println(stringify(val));
         } catch (RuntimeError err) {
             Lox.runtimeError(err);
         }
@@ -69,6 +69,7 @@ public class Interpreter implements Expr.Visitor<Object> {
             case EQEQ:
                 return isEqual(left, right);
         }
+        return null;
     }
 
     private void checkUnaryOperand(Token operator, Object operand){
