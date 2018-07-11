@@ -8,7 +8,11 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     @Override
     public Object visitGroupingExpr(Expr.Grouping expr) {
-        return null;
+        return evaluate(expr.expression);
+    }
+
+    private Object evaluate(Expr expr){
+        return expr.accept(this);
     }
 
     @Override
