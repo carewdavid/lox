@@ -140,14 +140,12 @@ public class Scanner {
                Lox.error(line, "Unterminated string.");
                return;
             }
-
-            /* Consume closing '"' */
-            advance();
-
-            String val = source.substring(start+1, current-1);
-            addToken(STRING, val);
-
         }
+                    /* Consume closing '"' */
+        advance();
+
+        String val = source.substring(start+1, current-1);
+        addToken(STRING, val);
     }
 
     private void number(){
