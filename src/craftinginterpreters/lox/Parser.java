@@ -1,5 +1,6 @@
 package craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static craftinginterpreters.lox.TokenType.*;
@@ -15,13 +16,13 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    protected Expr parse(){
-        try {
-            return expression();
-
-        }catch (ParseError error){
-            return null;
+    /* program -> statement* EOF */
+    protected List<Stmt> parse(){
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+        return statements;
     }
 
     /* expression -> equality */
