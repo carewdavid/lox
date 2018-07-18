@@ -25,6 +25,18 @@ public class Parser {
         return statements;
     }
 
+    /*
+    statement -> exprStmt
+    statement -> printStmt
+     */
+    private Stmt statement() {
+        if (match(PRINT)) {
+            return printStatement();
+        }else {
+            return expressionStatement();
+        }
+    }
+
     /* expression -> equality */
     private Expr expression(){
         return equality();
