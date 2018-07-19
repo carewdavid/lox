@@ -19,8 +19,13 @@ public class Parser {
     /* program -> statement* EOF */
     protected List<Stmt> parse(){
         List<Stmt> statements = new ArrayList<>();
-        while (!isAtEnd()) {
-            statements.add(statement());
+        try {
+            while (!isAtEnd()) {
+                statements.add(statement());
+            }
+        } catch (ParseError error) {
+            /* Reporting the error message is handled in Lox.error. This is just to keep the REPL from crashing on
+            bad input */
         }
         return statements;
     }
