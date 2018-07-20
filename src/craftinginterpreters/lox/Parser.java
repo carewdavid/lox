@@ -16,18 +16,32 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    /* program -> statement* EOF */
+    /* program -> declaration* EOF */
     protected List<Stmt> parse(){
         List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        return statements;
+    }
+
+    /*
+    declaration -> varDecl
+    declaration -> statement
+     */
+
+    private Stmt declaration() {
         try {
-            while (!isAtEnd()) {
-                statements.add(statement());
+            if (match(VAR)) {
+                return varDeclaration();
+            } else {
+                return statement();
             }
         } catch (ParseError error) {
-            /* Reporting the error message is handled in Lox.error. This is just to keep the REPL from crashing on
-            bad input */
+            synchronize();
+            return null;
         }
-        return statements;
     }
 
     /*
