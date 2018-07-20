@@ -54,7 +54,7 @@ public class Parser {
         }
 
         consume(SEMICOLON, "Expect ';' at end of declaration.");
-        return Stmt.Var(name, initializer);
+        return new Stmt.Var(name, initializer);
     }
 
     /*
@@ -151,7 +151,7 @@ public class Parser {
        }
 
     }
-    /* primary -> NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" */
+    /* primary -> NUMBER | STRING | IDENTIFIER | "false" | "true" | "nil" | "(" expression ")" */
     private Expr primary(){
         if (match(FALSE)){
             return new Expr.Literal(false);
@@ -167,6 +167,10 @@ public class Parser {
 
         if (match(NUMBER, STRING)){
             return new Expr.Literal(previous().literal);
+        }
+
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
         }
 
         if (match(LPAREN)){
