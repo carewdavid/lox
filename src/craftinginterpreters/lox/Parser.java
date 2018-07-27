@@ -121,6 +121,26 @@ public class Parser {
         return expr;
     }
 
+    /*
+    assignment -> identifier "=" assignment
+    assignment -> equality
+     */
+    private Expr assignment(){
+        Expr expr = equality();
+        if (match(EQ)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof  Expr.Variable) {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid lvalue in assignment.");
+        }
+        return expr;
+    }
+
     /* equality -> comparison ( ( "!=" | "==" ) comparison )* */
     private Expr equality(){
         Expr expr = comparison();
