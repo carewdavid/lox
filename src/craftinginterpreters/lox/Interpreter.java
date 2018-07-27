@@ -6,6 +6,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = new Environment();
 
     @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return environment.get(expr.name);
+    }
+
+    @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         /* Lox variables default to null */
         Object value = null;
