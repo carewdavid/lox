@@ -60,13 +60,10 @@ public class Parser {
     /*
     statement -> exprStmt
     statement -> printStmt
-    statement -> block
      */
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
-        } else if (match(LBRACE)) {
-            return new Stmt.Block(block());
         }else {
             return expressionStatement();
         }
@@ -84,41 +81,9 @@ public class Parser {
         return new Stmt.Expression(value);
     }
 
-    /* block -> "{" declaration* "}" */
-    private List<Stmt> block() {
-        List<Stmt> statements = new ArrayList<>();
-
-        while (!check(RBRACE) && !isAtEnd()) {
-            statements.add(declaration());
-        }
-
-        consume(RBRACE, "Expect '}' at end of block.");
-        return statements;
-    }
-
     /* expression -> assignment */
     private Expr expression(){
         return assignment();
-    }
-
-    /*
-    assignment -> identifier "=" assignment
-    assignment -> equality
-     */
-    private Expr assignment(){
-        Expr expr = equality();
-        if (match(EQ)) {
-            Token equals = previous();
-            Expr value = assignment();
-
-            if (expr instanceof  Expr.Variable) {
-                Token name = ((Expr.Variable)expr).name;
-                return new Expr.Assign(name, value);
-            }
-
-            error(equals, "Invalid lvalue in assignment.");
-        }
-        return expr;
     }
 
     /*
