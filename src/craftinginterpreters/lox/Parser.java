@@ -60,10 +60,13 @@ public class Parser {
     /*
     statement -> exprStmt
     statement -> printStmt
+    statement -> block
      */
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
+        } else if (match(LBRACE)) {
+            return new Stmt.Block(block());
         }else {
             return expressionStatement();
         }
@@ -79,6 +82,18 @@ public class Parser {
         Expr value = expression();
         consume(SEMICOLON, "Expect ';' at end of statement");
         return new Stmt.Expression(value);
+    }
+
+    /* block -> "{" declaration* "}" */
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(RBRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(RBRACE, "Expect '}' at end of block.");
+        return statements;
     }
 
     /* expression -> assignment */
