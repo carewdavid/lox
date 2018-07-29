@@ -60,16 +60,22 @@ public class Parser {
     /*
     statement -> exprStmt
     statement -> printStmt
+    statement -> ifStmt
     statement -> block
      */
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
-        } else if (match(LBRACE)) {
-            return new Stmt.Block(block());
-        }else {
-            return expressionStatement();
         }
+        if (match(LBRACE)) {
+            return new Stmt.Block(block());
+        }
+
+        if (match(IF)) {
+            return ifStatement();
+        }
+        return expressionStatement();
+
     }
 
     private Stmt printStatement() {
@@ -82,6 +88,21 @@ public class Parser {
         Expr value = expression();
         consume(SEMICOLON, "Expect ';' at end of statement");
         return new Stmt.Expression(value);
+    }
+
+    /* ifStmt -> "if" "(" expression ")" statement ( "else" statement )? */
+    private Stmt ifStatement() {
+        consume(LPAREN, "Expect '(' after 'if'.");
+
+        Expr condition = expression();
+        consume(RPAREN, "Expect ')' after condition.");
+        Stmt then = statement();
+        Stmt elsee = null;
+        if (match(ELSE)){
+            elsee = statement();
+        }
+
+         return new Stmt.If(condition, then, elsee);
     }
 
     /* block -> "{" declaration* "}" */
