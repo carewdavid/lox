@@ -27,6 +27,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = evaluate(expr.left);
+
+        /* Short circuit evaluation of logical operators--like every other language out there. */
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) {
+                return left;
+            }
+        }else {
+            if (!isTruthy(left)) {
+                return left;
+            }
+        }
+
+        return evaluate(expr.right);
+    }
+
     private void executeBlock(List<Stmt> statements, Environment environment) {
         Environment prev = this.environment;
         try {
