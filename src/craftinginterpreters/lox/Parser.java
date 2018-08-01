@@ -62,6 +62,7 @@ public class Parser {
     statement -> printStmt
     statement -> ifStmt
     statement -> block
+    statement -> whileStmt
      */
     private Stmt statement() {
         if (match(PRINT)) {
@@ -73,6 +74,10 @@ public class Parser {
 
         if (match(IF)) {
             return ifStatement();
+        }
+
+        if (match(WHILE)) {
+            return whileStatement();
         }
         return expressionStatement();
 
@@ -115,6 +120,16 @@ public class Parser {
 
         consume(RBRACE, "Expect '}' at end of block.");
         return statements;
+    }
+
+    /* whileStmt -> "while" "(" expression ")" statement */
+    private Stmt whileStatement() {
+        consume(LPAREN, "Expect '(' after while.");
+        Expr condition = expression();
+        consume(RPAREN, "Expect ')' after loop condition.");
+        Stmt body = statement();
+
+        return new Stmt.While(condition, body);
     }
 
     /* expression -> assignment */
