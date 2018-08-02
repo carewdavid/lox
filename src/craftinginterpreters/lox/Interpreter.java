@@ -163,9 +163,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             case GREATEREQ:
                 return (double)left >= (double)right;
             case LESS:
-                return (double)left > (double)right;
+                return (double)left < (double)right;
             case LESSEQ:
-                return (double)left >= (double)right;
+                return (double)left <= (double)right;
             case BANGEQ:
                 return !isEqual(left, right);
             case EQEQ:
