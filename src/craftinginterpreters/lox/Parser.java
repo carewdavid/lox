@@ -288,16 +288,41 @@ public class Parser {
 
     /*
        unary -> ( "!" | "-" ) unary
-       unary -> primary
+       unary -> call
      */
     private Expr unary(){
        if (match(BANG, MINUS)){
            Token op = previous();
            return new Expr.Unary(op, unary());
        }else {
-           return primary();
+           return call();
        }
 
+    }
+
+    /* call -> primary ( "(" arguments? ")" )* */
+    private Expr call() {
+        Expr expr = primary();
+        while (match(LPAREN)) {
+            expr = finishCall(expr);
+        }
+        return expr;
+    }
+
+    private Expr finishCall(Expr callee) {
+        List<Expr> args = new ArrayList<>();
+        if (!check(RPAREN)) {
+            do {
+                if (args.size() >= 8) {
+                    error(peek(), "Functions cannot have more than 8 arguments.");
+                }
+                args.add(expression());
+            } while (match(COMMA));
+        }
+        /* Grab the closing paren to use its location in error messages */
+        Token paren = consume(RPAREN, "Expect ')' after function arguments.");
+
+        return new Expr.Call(callee, paren, args);
     }
     /* primary -> NUMBER | STRING | IDENTIFIER | "false" | "true" | "nil" | "(" expression ")" */
     private Expr primary(){
