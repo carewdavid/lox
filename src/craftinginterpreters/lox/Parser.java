@@ -1,6 +1,7 @@
 package craftinginterpreters.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static craftinginterpreters.lox.TokenType.*;
@@ -63,6 +64,7 @@ public class Parser {
     statement -> ifStmt
     statement -> block
     statement -> whileStmt
+    statement -> forStmt
      */
     private Stmt statement() {
         if (match(PRINT)) {
@@ -79,6 +81,11 @@ public class Parser {
         if (match(WHILE)) {
             return whileStatement();
         }
+
+        if (match(FOR)) {
+            return forStatement();
+        }
+
         return expressionStatement();
 
     }
@@ -130,6 +137,50 @@ public class Parser {
         Stmt body = statement();
 
         return new Stmt.While(condition, body);
+    }
+
+    /*
+    forStmt -> "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement
+    */
+    private Stmt forStatement() {
+        consume(LPAREN, "Expect '(' after for.");
+        Stmt initializer = null;
+
+        if (match(SEMICOLON)) {
+            initializer = null;
+        } else if (match(VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!check(SEMICOLON)) {
+            condition = expression();
+        }
+        consume(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expr update = null;
+        if (!check(RPAREN)){
+            update = expression();
+        }
+        consume(RPAREN, "Expect ')' after for clauses.");
+
+        /* Desugar for loops into while loops */
+        Stmt body = statement();
+        if (update != null) {
+            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(update)));
+        }
+        if (condition == null) {
+            condition = new Expr.Literal(true);
+        }
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
     }
 
     /* expression -> assignment */
