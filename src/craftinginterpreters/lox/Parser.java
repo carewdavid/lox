@@ -13,6 +13,8 @@ public class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
+    private final int MAX_PARAMETERS = 8;
+
     Parser(List<Token> tokens){
         this.tokens = tokens;
     }
@@ -30,19 +32,53 @@ public class Parser {
     /*
     declaration -> varDecl
     declaration -> statement
+    declaration -> funDecl
      */
 
     private Stmt declaration() {
         try {
             if (match(VAR)) {
                 return varDeclaration();
-            } else {
-                return statement();
             }
+
+            if (match(FUN)) {
+                return funDeclaration("function");
+            }
+
+            return statement();
+
         } catch (ParseError error) {
             synchronize();
             return null;
         }
+    }
+
+    /*
+    funDecl -> "fun" function
+
+    function -> IDENTIFIER "(" parameters? ")" block
+
+    parameters -> IDENTIFIER ( "," IDENTIFIER )*
+
+     */
+    private Stmt.Function funDeclaration(String kind){
+        Token name = consume(LPAREN, String.format("Expect %s name.", kind));
+        List<Token> parameters = new ArrayList<>();
+
+        /*Are there any parameters declared? */
+        if (!check(RPAREN)) {
+            do {
+                if (parameters.size() >= MAX_PARAMETERS) {
+                    error(peek(), String.format("Cannot have more than %d parameters.", MAX_PARAMETERS));
+                }
+                parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+            }while (match(COMMA));
+        }
+        consume(RPAREN, "Expect ')' after function parameters.");
+
+        consume(LBRACE, String.format("Expect '{' before %s body.", kind));
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
     }
 
     /* varDecl -> "var" IDENTIFIER ( "=" expression )? ";" */
@@ -313,8 +349,8 @@ public class Parser {
         List<Expr> args = new ArrayList<>();
         if (!check(RPAREN)) {
             do {
-                if (args.size() >= 8) {
-                    error(peek(), "Functions cannot have more than 8 arguments.");
+                if (args.size() >= MAX_PARAMETERS) {
+                    error(peek(), String.format("Functions cannot have more than %d arguments.", MAX_PARAMETERS));
                 }
                 args.add(expression());
             } while (match(COMMA));
