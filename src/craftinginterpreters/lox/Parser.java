@@ -102,6 +102,7 @@ public class Parser {
     statement -> block
     statement -> whileStmt
     statement -> forStmt
+    statement -> returnStmt
      */
     private Stmt statement() {
         if (match(PRINT)) {
@@ -121,6 +122,10 @@ public class Parser {
 
         if (match(FOR)) {
             return forStatement();
+        }
+
+        if (match(RETURN)) {
+            return returnStatement();
         }
 
         return expressionStatement();
@@ -218,6 +223,19 @@ public class Parser {
         }
 
         return body;
+    }
+
+    /* returnStmt -> "return" expression? ";" */
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+
+        if (!check(SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, value);
     }
 
     /* expression -> assignment */
