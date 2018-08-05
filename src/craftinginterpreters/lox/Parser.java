@@ -62,7 +62,8 @@ public class Parser {
 
      */
     private Stmt.Function funDeclaration(String kind){
-        Token name = consume(LPAREN, String.format("Expect %s name.", kind));
+        Token name = consume(IDENTIFIER, String.format("Expect %s name.", kind));
+        consume(LPAREN, String.format("Expect '(' after %s name.", kind));
         List<Token> parameters = new ArrayList<>();
 
         /*Are there any parameters declared? */
