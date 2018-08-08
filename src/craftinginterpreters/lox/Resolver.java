@@ -10,6 +10,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
 
+    private enum FunctionType {
+        NONE,
+        FUNCTION
+    }
+    private FunctionType currentFunction = FunctionType.NONE;
+
+
     protected void resolve(List<Stmt> stmts) {
         for (Stmt stmt : stmts) {
             resolve(stmt);
@@ -34,7 +41,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
     }
 
-    private void resolveFunction(Stmt.Function function) {
+    private void resolveFunction(Stmt.Function function, FunctionType type) {
+        FunctionType enclosingFunc = currentFunction;
+        currentFunction = type;
+
         beginScope();
         for (Token param : function.parameters) {
             declare(param);
@@ -43,6 +53,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         resolve(function.body);
         endScope();
+
+        currentFunction = enclosingFunc;
     }
 
     private void beginScope() {
@@ -57,8 +69,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         if (scopes.isEmpty()) {
             return;
         }
-
-        scopes.peek().put(name.lexeme, false);
+        Map<String, Boolean> scope = scopes.peek();
+        if (scope.containsKey(name.lexeme)) {
+            Lox.error(name, "Variable with this name already declared in current scope.");
+        }
+        scope.put(name.lexeme, false);
     }
 
     private void define(Token name) {
@@ -129,7 +144,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
-        resolve(stmt.value);
+        if (currentFunction == FunctionType.NONE) {
+            Lox.error(stmt.keyword, "Cannot return from top level code.");
+        }
+        if (stmt.value != null) {
+            resolve(stmt.value);
+        }
         return null;
     }
 
@@ -137,7 +157,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitFunctionStmt(Stmt.Function stmt) {
         declare(stmt.name);
         define(stmt.name);
-        resolveFunction(stmt);
+        resolveFunction(stmt, FunctionType.FUNCTION);
         return null;
     }
 
