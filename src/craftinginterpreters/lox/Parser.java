@@ -33,6 +33,7 @@ public class Parser {
     declaration -> varDecl
     declaration -> statement
     declaration -> funDecl
+    declaration -> classDecl
      */
 
     private Stmt declaration() {
@@ -45,12 +46,30 @@ public class Parser {
                 return funDeclaration("function");
             }
 
+            if (match(CLASS)) {
+                return classDeclaration();
+            }
+
             return statement();
 
         } catch (ParseError error) {
             synchronize();
             return null;
         }
+    }
+
+    /* classDecl -> "class" IDENTIFIER "{" function* "}" */
+    private Stmt classDeclaration() {
+        Token name = consume(IDENTIFIER, "Expect class name.");
+        consume(LBRACE, "Expect '{' before class body.");
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(RBRACE) && !isAtEnd()) {
+            methods.add(funDeclaration("method"));
+        }
+
+        consume(RBRACE, "Expect '}' after class body.");
+
+        return new Stmt.Class(name, methods);
     }
 
     /*
