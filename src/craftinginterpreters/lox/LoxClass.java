@@ -1,9 +1,11 @@
 package craftinginterpreters.lox;
 
+
 import java.util.List;
 
 public class LoxClass implements LoxCallable{
     final String name;
+
 
     public LoxClass(String name) {
         this.name = name;
@@ -24,4 +26,6 @@ public class LoxClass implements LoxCallable{
     public int arity() {
         return 0;
     }
+
+
 }

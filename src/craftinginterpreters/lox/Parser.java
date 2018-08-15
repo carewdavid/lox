@@ -263,7 +263,7 @@ public class Parser {
     }
 
     /*
-    assignment -> identifier "=" assignment
+    assignment -> ( call "." )? IDENTIFIER "=" assignment
     assignment -> logic_or
      */
     private Expr assignment(){
