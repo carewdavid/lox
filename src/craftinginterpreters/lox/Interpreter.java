@@ -81,6 +81,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return evaluate(expr.right);
     }
 
+    @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        Object lvalue = evaluate(expr.object);
+
+        if (!(lvalue instanceof LoxInstance)) {
+            throw new RuntimeError(expr.name, "Only instances have fields.");
+        }
+
+        Object rvalue = evaluate(expr.value);
+        ((LoxInstance)lvalue).set(expr.name, rvalue);
+        return rvalue;
+    }
+
     protected void executeBlock(List<Stmt> statements, Environment environment) {
         Environment prev = this.environment;
         try {
