@@ -19,9 +19,13 @@ public class LoxInstance {
     public Object get(Token name) {
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
-        } else {
-            throw new RuntimeError(name, String.format("Undefined property %s.", name.lexeme));
         }
+
+        LoxFunction method = classs.findMethod(this, name.lexeme);
+        if (method != null) return method;
+
+        throw new RuntimeError(name, String.format("Undefined property %s.", name.lexeme));
+
     }
 
     public void set(Token name, Object value) {
