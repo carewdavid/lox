@@ -435,6 +435,10 @@ public class Parser {
             consume(RPAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+
+        if (match(THIS)) {
+            return new Expr.This(previous());
+        }
         throw error(peek(), "Expect expression");
     }
 
