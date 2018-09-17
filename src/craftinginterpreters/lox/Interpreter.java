@@ -138,14 +138,48 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitSuperExpr(Expr.Super expr) {
+        int distance = locals.get(expr);
+        LoxClass superclass = (LoxClass)environment.getAt(distance, "super");
+        LoxInstance object = (LoxInstance)environment.getAt(distance - 1, "this");
+
+        LoxFunction method = superclass.findMethod(object, expr.method.lexeme);
+
+        if (method == null) {
+            throw new RuntimeError(expr.method, String.format("Undefined property '%s'.", expr.method.lexeme));
+        }
+
+        return method;
+    }
+
+    @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        Object superclass = null;
+        if (stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass);
+            if (!(superclass instanceof LoxClass)) {
+                throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+            }
+        }
+
         environment.define(stmt.name.lexeme, null);
+
+        if (stmt.superclass != null) {
+            environment = new Environment(environment);
+            environment.define("super", superclass);
+        }
+
         Map<String, LoxFunction> methods = new HashMap<>();
         for (Stmt.Function method : stmt.methods) {
             LoxFunction func = new LoxFunction(method, environment, method.name.equals("init"));
             methods.put(method.name.lexeme, func);
         }
-        LoxClass classs = new LoxClass(stmt.name.lexeme, methods);
+        LoxClass classs = new LoxClass(stmt.name.lexeme, (LoxClass) superclass, methods);
+
+        if (superclass != null) {
+            environment = environment.enclosing;
+        }
+
         environment.assign(stmt.name, classs);
         return null;
     }
