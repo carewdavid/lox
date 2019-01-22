@@ -1,9 +1,11 @@
+#include <stdio.h>
+
 #include "common.h"
 #include "compiler.h"
 #include "scanner.h"
 
 void compile(const char *source){
-  initScanner(scource);
+  initScanner(source);
 
   //Basic driver for testing while the scanner is under construction
   int line = -1;
@@ -18,4 +20,5 @@ void compile(const char *source){
     printf("%2d '%.*s'\n", token.type, token.length, token.start);
 
     if(token.type == TOKEN_EOF) break;
+  }
 }
