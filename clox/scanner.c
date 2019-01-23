@@ -42,9 +42,8 @@ static Token errorToken(const char *msg){
 }
 
 static char advance(){
-  char c = scanner.current[0];
   scanner.current++;
-  return c;
+  return scanner.current[-1];
 }
 
 static char peek(){
@@ -66,6 +65,11 @@ static bool match(char expect){
 
   scanner.current++;
   return true;
+}
+
+/* Characters that can start an identifier */
+static bool isAlpha(char c){
+  return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c == '_';
 }
 
 /* Consume whitespace and comments */
@@ -99,6 +103,7 @@ static void skipWhitespace(){
    so for now we just save the source text. */
 static Token string(){
   while(peek() != '"' && !isAtEnd()){
+   
     if(peek() == '\n') scanner.line++;
     advance();
   }
@@ -157,17 +162,22 @@ static TokenType identifierType(){
       case 'u': return checkKeyword(2, 1, "n", TOKEN_FUN);
       }
     }
+    break;
   case 't':
     if(scanner.current - scanner.start > 1){
       switch(scanner.start[1]){
       case 'r': return checkKeyword(2, 2, "ue", TOKEN_TRUE);
       case 'h': return checkKeyword(2, 2, "is", TOKEN_THIS);
+      }
+    }
+    break;
   }
 
   return TOKEN_IDENTIFIER;
+}
 
 static Token identifier(){
-  while(isalpha(peek()) || isdigit(peek())){
+  while(isAlpha(peek()) || isdigit(peek())){
     advance();
   }
 
@@ -188,7 +198,7 @@ Token scanToken(){
     return number();
   }
 
-  if(isalpha(peek())){
+  if(isAlpha(c)){
     return identifier();
   }
   
