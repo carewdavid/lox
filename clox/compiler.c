@@ -32,6 +32,14 @@ typedef enum {
 	      PREC_PRIMARY
 } Precedence;
 
+typedef void (*ParseFn)();
+
+typedef struct {
+  ParseFn prefix;
+  ParseFn infix;
+  Precedence precedence;
+} ParseRule;
+
 Chunk *compilingChunk;
 
 static Chunk *currentChunk(){
@@ -113,6 +121,10 @@ static void endCompiler(){
   emitReturn();
 }
 
+static void expression();
+static ParseRule *getRule();
+static void parsePrecedence();
+
 static uint8_t makeConstant(Value value){
   int constant = addConstant(currentChunk(), value);
   if(constant > UINT8_MAX){
@@ -130,12 +142,50 @@ static void emitConstant(Value value){
 /* (And compiler, really. We do the parsing and emit bytcode all in one pass) */
 
 static void parsePrecedence(Precedence precedence){
-  //TODO
+  advance();
+  ParseFn prefixRule = getRule(parser.previous.type)->prefix;
+  if(prefixRule == NULL){
+    error("Expect expression");
+  }
+  prefixRule();
+
+  while(precedence <= getRule(parser.current.type)->precedence){
+    advance();
+    ParseFn infixRule = getRule(parser.previous.type)->infix;
+    infixRule();
+  }
 }
+
 
 static void expression(){
   parsePrecedence(PREC_ASSIGN);
 }
+
+static void binary(){
+  TokenType opType = parser.previous.type;
+
+  //Compile right operand
+  ParseRule *rule = getRule(opType);
+  parsePrecedence((Precedence)(rule->precedence + 1));
+
+  switch(opType){
+  case TOKEN_PLUS:
+    emitByte(OP_ADD);
+    break;
+  case TOKEN_MINUS:
+    emitByte(OP_SUBTRACT);
+    break;
+  case TOKEN_STAR:
+    emitByte(OP_MULTIPLY);
+    break;
+  case TOKEN_SLASH:
+    emitByte(OP_DIVIDE);
+    break;
+  default:
+    return;
+  }
+}
+      
 
 //Parse a number literal
 static void number(){
@@ -166,8 +216,58 @@ static void unary(){
 }
 
 
+//Some things you just have to copy and paste
+ParseRule rules[] = {                                              
+  { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN      
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN     
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE     
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA           
+  { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT             
+  { unary,    binary,  PREC_TERM },       // TOKEN_MINUS           
+  { NULL,     binary,  PREC_TERM },       // TOKEN_PLUS            
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON       
+  { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH           
+  { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR            
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG            
+  { NULL,     NULL,    PREC_EQ},   // TOKEN_BANG_EQUAL      
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL           
+  { NULL,     NULL,    PREC_EQ},   // TOKEN_EQUAL_EQUAL     
+  { NULL,     NULL,    PREC_CMP}, // TOKEN_GREATER         
+  { NULL,     NULL,    PREC_CMP}, // TOKEN_GREATER_EQUAL   
+  { NULL,     NULL,    PREC_CMP}, // TOKEN_LESS            
+  { NULL,     NULL,    PREC_CMP}, // TOKEN_LESS_EQUAL      
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER      
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING          
+  { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER          
+  { NULL,     NULL,    PREC_AND },        // TOKEN_AND             
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS           
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE            
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_FALSE           
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR             
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN             
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_IF              
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_NIL             
+  { NULL,     NULL,    PREC_OR },         // TOKEN_OR              
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT           
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN          
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER           
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS            
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_TRUE            
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR             
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_WHILE           
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_ERROR           
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_EOF             
+};           
+
+static ParseRule *getRule(TokenType type){
+  return &rules[type];
+}
+
 bool compile(const char *source, Chunk *chunk){
   initScanner(source);
+
+  compilingChunk = chunk;
   parser.hadError = false;
   parser.panicMode = false;
 
