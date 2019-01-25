@@ -42,8 +42,9 @@ static Token errorToken(const char *msg){
 }
 
 static char advance(){
+  char c = scanner.current[0];
   scanner.current++;
-  return scanner.current[-1];
+  return c;
 }
 
 static char peek(){
@@ -103,7 +104,6 @@ static void skipWhitespace(){
    so for now we just save the source text. */
 static Token string(){
   while(peek() != '"' && !isAtEnd()){
-   
     if(peek() == '\n') scanner.line++;
     advance();
   }
