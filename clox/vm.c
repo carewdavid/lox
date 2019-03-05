@@ -22,6 +22,11 @@ Value peek(int depth){
   return vm.stackTop[-1 - depth];
 }
 
+//'nil' and 'false' are false. All other variables are true for the purposes of boolean operations
+static bool isFalsey(Value value){
+  return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+}
+
 static void resetStack(){
   vm.stackTop = vm.stack;
 }
@@ -92,6 +97,11 @@ static InterpretResult run(){
       }else{
 	push(NUMBER_VAL(-AS_NUMBER(pop())));
       }
+      break;
+    }
+
+    case OP_NOT: {
+      push(BOOL_VAL(isFalsey(pop())));
       break;
     }
 

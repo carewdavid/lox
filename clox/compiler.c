@@ -235,13 +235,17 @@ static void unary(){
   case TOKEN_MINUS:
     emitByte(OP_NEGATE);
     break;
+  case TOKEN_BANG:
+    emitByte(OP_NOT);
+    break;
   default:
     return;
   }
 }
 
 
-//Some things you just have to copy and paste
+//Some things you just have to copy and paste, like this big table of parsing rules
+//                     prefix    infix    precedence
 ParseRule rules[] = {                                              
 		     { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN      
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN     
@@ -254,7 +258,7 @@ ParseRule rules[] = {
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON       
 		     { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH           
 		     { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR            
-		     { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG            
+		     { unary,     NULL,    PREC_NONE },       // TOKEN_BANG            
 		     { NULL,     NULL,    PREC_EQ},   // TOKEN_BANG_EQUAL      
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL           
 		     { NULL,     NULL,    PREC_EQ},   // TOKEN_EQUAL_EQUAL     
