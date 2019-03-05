@@ -32,3 +32,23 @@ void printValue(Value value){
   case VAL_NIL: printf("nil"); break;
   }
 }
+
+bool valuesEqual(Value a, Value b){
+  if(a.type != b.type){
+    return false;
+  }
+
+  switch(a.type){
+  case VAL_BOOL:
+    return AS_BOOL(a) == AS_BOOL(b);
+    break;
+  case VAL_NUMBER:
+    return AS_NUMBER(a) == AS_NUMBER(b);
+    break;
+  case VAL_NIL:
+    return true;
+  default:
+    return false;
+  }
+}
+    
