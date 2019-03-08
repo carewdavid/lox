@@ -261,6 +261,10 @@ static void unary(){
   }
 }
 
+static void string(){
+  emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
+}
+
 
 //Some things you just have to copy and paste, like this big table of parsing rules
 //                     prefix    infix    precedence
@@ -285,7 +289,7 @@ ParseRule rules[] = {
 		     { NULL,     binary,    PREC_CMP}, // TOKEN_LESS            
 		     { NULL,     binary,    PREC_CMP}, // TOKEN_LESS_EQUAL      
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER      
-		     { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING          
+		     { string,     NULL,    PREC_NONE },       // TOKEN_STRING          
 		     { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER          
 		     { NULL,     NULL,    PREC_AND },        // TOKEN_AND             
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS           

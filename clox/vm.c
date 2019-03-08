@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "common.h"
 #include "vm.h"
 #include "debug.h"
 #include "compiler.h"
+#include "memory.h"
 
 VM vm;
 
@@ -49,6 +51,18 @@ void initVM(){
 }
   
 void freeVM(){
+}
+
+static void concatenate(){
+  ObjString *right = AS_STRING(pop());
+  ObjString *left = AS_STRING(pop());
+  int length = right->length + left->length;
+  char *chars = ALLOCATE(char, length + 1);
+  memcpy(chars, left->chars, left->length);
+  memcpy(chars + left->length, right->chars, right->length);
+  chars[length] = '\0';
+  ObjString *result = takeString(chars, length);
+  push(OBJ_VAL(result));
 }
 
 static InterpretResult run(){
@@ -123,8 +137,12 @@ static InterpretResult run(){
     }
 
     case OP_ADD: {
-      BINARY_OP(NUMBER_VAL, +);
-      break;
+      if(IS_STRING(peek(0)) && IS_STRING(peek(1))){
+	concatenate();
+      }else{
+	BINARY_OP(NUMBER_VAL, +);
+	break;
+      }
     }
 
     case OP_SUBTRACT: {
