@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "compiler.h"
 #include "memory.h"
+#include "object.h"
 
 VM vm;
 
@@ -48,9 +49,11 @@ static void runtimeError(const char *format, ...){
 
 void initVM(){
   resetStack();
+  vm.objects = NULL;
 }
   
 void freeVM(){
+  freeObjects();
 }
 
 static void concatenate(){
