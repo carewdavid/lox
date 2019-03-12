@@ -146,8 +146,8 @@ static InterpretResult run(){
 	concatenate();
       }else{
 	BINARY_OP(NUMBER_VAL, +);
-	break;
       }
+      break;
     }
 
     case OP_SUBTRACT: {
