@@ -21,7 +21,7 @@ void freeTable(Table *table){
 
 //Use linear probing to find a slot for <key>
 static Entry *findEntry(Entry *entries, int capacity, ObjString *key){
-  uint32_t index = key->hash & capacity;
+  uint32_t index = key->hash % capacity;
   Entry *tombstone = NULL;
   
   for(;;){
