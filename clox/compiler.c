@@ -192,6 +192,9 @@ static void printStatement(){
   emitByte(OP_PRINT);
 }
 
+static void expressionStatement(){
+}
+
 static void declaration(){
   statement();
 }

@@ -99,8 +99,6 @@ static InterpretResult run(){
     uint8_t instr;
     switch(instr = READ_BYTE()){
     case OP_RETURN: {
-      printValue(pop());
-      printf("\n");
       return INTERPRET_OK;
     }
     case OP_CONSTANT: {
@@ -171,7 +169,11 @@ static InterpretResult run(){
     case OP_FALSE:
       push(BOOL_VAL(false));
       break;
-
+    case OP_PRINT: {
+      printValue(pop());
+      printf("\n");
+      break;
+    }
     }
   }
 #undef READ_BYTE
