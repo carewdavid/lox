@@ -187,7 +187,7 @@ static uint8_t identifierConstant(Token *name){
 
 static uint8_t parseVariable(const char *errorMessage){
   consume(TOKEN_IDENTIFIER, errorMessage);
-  return indentifierConstant(&parser.previous);
+  return identifierConstant(&parser.previous);
 }
 
 static void defineVariable(uint8_t global){
@@ -241,7 +241,7 @@ static void expressionStatement(){
 }
 
 static void varDeclaration(){
-  uin8_t global = parseVariable("Expect variable name.");
+  uint8_t global = parseVariable("Expect variable name.");
   if(match(TOKEN_EQUAL)){
     expression();
   }else{
@@ -366,6 +366,16 @@ static void string(){
   emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
+static void namedVariable(Token name){
+  int arg = identifierConstant(&name);
+
+  emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+}
+
+static void variable(){
+  namedVariable(parser.previous);
+}
+
 
 //Some things you just have to copy and paste, like this big table of parsing rules
 //                     prefix    infix    precedence
@@ -389,7 +399,7 @@ ParseRule rules[] = {
 		     { NULL,     binary,    PREC_CMP}, // TOKEN_GREATER_EQUAL   
 		     { NULL,     binary,    PREC_CMP}, // TOKEN_LESS            
 		     { NULL,     binary,    PREC_CMP}, // TOKEN_LESS_EQUAL      
-		     { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER      
+		     { variable,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER      
 		     { string,     NULL,    PREC_NONE },       // TOKEN_STRING          
 		     { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER          
 		     { NULL,     NULL,    PREC_AND },        // TOKEN_AND             
