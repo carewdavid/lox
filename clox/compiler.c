@@ -36,7 +36,7 @@ typedef enum {
 	      PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)();
+typedef void (*ParseFn)(bool canAssign);
 
 typedef struct {
   ParseFn prefix;
@@ -172,12 +172,18 @@ static void parsePrecedence(Precedence precedence){
   if(prefixRule == NULL){
     error("Expect expression");
   }
-  prefixRule();
+  bool canAssign = precedence < PREC_ASSIGN;
+  prefixRule(canAssign);
 
   while(precedence <= getRule(parser.current.type)->precedence){
     advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
-    infixRule();
+    infixRule(canAssign);
+  }
+
+  if(canAssign && match(TOKEN_EQUAL)){
+    error("Invalid assignment target.");
+    expression();
   }
 }
 
@@ -271,7 +277,9 @@ static void statement(){
     expressionStatement();
   }
 }
-static void binary(){
+
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void binary(bool canAssign){
   TokenType opType = parser.previous.type;
 
   //Compile right operand
@@ -315,7 +323,8 @@ static void binary(){
 }
 
 //Parse boolean and nil literals
-static void literal(){
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void literal(bool canAssign){
   switch(parser.previous.type){
   case TOKEN_NIL:
     emitByte(OP_NIL);
@@ -332,18 +341,21 @@ static void literal(){
 }
 
 //Parse a number literal
-static void number(){
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void number(bool canAssign){
   double value = strtod(parser.previous.start, NULL);
   emitConstant(NUMBER_VAL(value));
 }
 
 //Parse a parenthesized expression
-static void grouping(){
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void grouping(bool canAssign){
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression");
 }
 
-static void unary(){
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void unary(bool canAssign){
   TokenType opType = parser.previous.type;
 
   //Parse operand
@@ -362,18 +374,24 @@ static void unary(){
   }
 }
 
-static void string(){
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+static void string(bool canAssign){
   emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
-static void namedVariable(Token name){
+static void namedVariable(Token name, bool canAssign){
   int arg = identifierConstant(&name);
 
-  emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+  if(canAssign && match(TOKEN_EQUAL)){
+    expression();
+    emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+  }else{
+    emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+  }
 }
 
-static void variable(){
-  namedVariable(parser.previous);
+static void variable(bool canAssign){
+  namedVariable(parser.previous, canAssign);
 }
 
 

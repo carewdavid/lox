@@ -196,6 +196,14 @@ static InterpretResult run(){
       push(value);
       break;
     }
+    case OP_SET_GLOBAL: {
+      ObjString *name = READ_STRING();
+      if(tableSet(&vm.globals, name, peek(0))){
+	runtimeError("Undefined variable '%s'.", name->chars);
+	return INTERPRET_RUNTIME_ERROR;
+      }
+      break;
+    }
     }
   }
 #undef READ_BYTE
