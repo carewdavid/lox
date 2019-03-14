@@ -193,6 +193,33 @@ static void printStatement(){
   emitByte(OP_PRINT);
 }
 
+//Return the parser to a valid state after an error
+static void synchronize(){
+  parser.panicMode = false;
+
+  //Consume and discard code up to the beginning of the next statement
+  while(parser.current.type != TOKEN_EOF){
+    if(parser.previous.type == TOKEN_SEMICOLON){
+      return;
+    }
+
+    switch(parser.current.type){
+    case TOKEN_CLASS:
+    case TOKEN_FUN:
+    case TOKEN_VAR:
+    case TOKEN_FOR:
+    case TOKEN_IF:
+    case TOKEN_WHILE:
+    case TOKEN_PRINT:
+    case TOKEN_RETURN:
+      return;
+    default:
+      ;
+    }
+    advance();
+  }
+}
+
 //Evaluate an expression for side effects and discard result.
 static void expressionStatement(){
     expression();
@@ -202,6 +229,9 @@ static void expressionStatement(){
 
 static void declaration(){
   statement();
+  if(parser.panicMode){
+    synchronize();
+  }
 }
 
 static void statement(){
