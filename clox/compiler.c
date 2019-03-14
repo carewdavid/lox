@@ -186,13 +186,18 @@ static void expression(){
   parsePrecedence(PREC_ASSIGN);
 }
 
+
 static void printStatement(){
   expression();
   consume(TOKEN_SEMICOLON, "Expect ';' after value.");
   emitByte(OP_PRINT);
 }
 
+//Evaluate an expression for side effects and discard result.
 static void expressionStatement(){
+    expression();
+    emitByte(OP_POP);
+    consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 }
 
 static void declaration(){

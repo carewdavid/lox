@@ -20,6 +20,7 @@ typedef enum {
   OP_MULTIPLY,
   OP_DIVIDE,
   OP_PRINT,
+  OP_POP,
 } OpCode;
 
 typedef struct {
