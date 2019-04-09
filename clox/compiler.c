@@ -230,6 +230,17 @@ static bool identifiersEqual(Token *a, Token *b){
   return memcmp(a->start, b->start, a->length) == 0;
 }
 
+static int resolveLocal(Compiler *compiler, Token *name){
+  for(int i = compiler->localCount - 1; i >= 0; i--){
+    Local *local = &compiler->locals[i];
+    if(identifiersEqual(&local->name, name)){
+	return i;
+    }
+  }
+  return -1;
+}
+      
+
 static void addLocal(Token name){
   if(current->localCount == UINT8_COUNT){
     error("Too many local variables in function.");
@@ -467,13 +478,20 @@ static void string(bool canAssign){
 }
 
 static void namedVariable(Token name, bool canAssign){
-  int arg = identifierConstant(&name);
-
+  int arg = resolveLocal(current, &name);
+  uint8_t getOp, setOp;
+  if(arg != -1){
+    getOp = OP_GET_LOCAL;
+    setOp = OP_SET_LOCAL;
+  }else{
+    arg = identifierConstant(&name);
+    getOp = OP_GET_GLOBAL;
+    getOp = OP_SET_GLOBAL;
   if(canAssign && match(TOKEN_EQUAL)){
     expression();
-    emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+    emitBytes(setOp, (uint8_t)arg);
   }else{
-    emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+    emitBytes(getOp, (uint8_t)arg);
   }
 }
 
