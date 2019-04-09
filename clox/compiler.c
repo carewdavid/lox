@@ -234,6 +234,9 @@ static int resolveLocal(Compiler *compiler, Token *name){
   for(int i = compiler->localCount - 1; i >= 0; i--){
     Local *local = &compiler->locals[i];
     if(identifiersEqual(&local->name, name)){
+      if(local->depth == -1){
+	error("Cannot read local variable in its own initializer.");
+      }
 	return i;
     }
   }
@@ -248,7 +251,7 @@ static void addLocal(Token name){
   }
   Local *local = current->locals[current->localCount++];
   local->name = name;
-  local->depth = current->scopeDepth;
+  local->depth = -1;
 }
 
 static void declareVariable(){
@@ -265,6 +268,7 @@ static void declareVariable(){
     if(identifiersEqual(name, &local->name)){
       error("Variable with this name already declared in this scope.");
     }
+  }
   addLocal(*name);
 }
 
@@ -278,10 +282,18 @@ static uint8_t parseVariable(const char *errorMessage){
   return identifierConstant(&parser.previous);
 }
 
+static void finishInitialize(){
+  if(current->scopeDepth == 0){
+    return;
+  }
+  current->locals[current->localCount - 1].depth = current->scopeDepth;
+}
+
 static void defineVariable(uint8_t global){
   //Local variables are just temp values on the stack: if we're not in the global scope,
   //there's no need to emit special bytecode
   if(current->scopeDepth > 0){
+    finishInitialize();
     return;
   }
   emitBytes(OP_DEFINE_GLOBAL, global);
