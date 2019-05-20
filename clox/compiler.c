@@ -45,10 +45,10 @@ typedef struct {
   Precedence precedence;
 } ParseRule;
 
-typedef struct Local {
+typedef struct {
   Token name;
   int depth;
-}
+} Local;
 
 typedef struct Compiler {
   Local locals[UINT8_COUNT];
@@ -144,6 +144,14 @@ static void emitBytes(uint8_t byte1, uint8_t byte2){
   emitByte(byte2);
 }
 
+static int emitJump(uint8_t instruction){
+	emitByte(instruction);
+	//Placeholder address since we don't know the target yet.
+	emitByte(0xff);
+	emitByte(0xff);
+	return currentChunk()->count - 2;
+}
+
 static void emitReturn(){
   emitByte(OP_RETURN);
 }
@@ -189,6 +197,16 @@ static uint8_t makeConstant(Value value){
   
 static void emitConstant(Value value){
   emitBytes(OP_CONSTANT, makeConstant(value));
+}
+
+static void patchJump(int offset){
+	int jump = currentChunk()->count - offset - 2;
+	if(jump > UINT16_MAX){
+		error("Jump too large.");
+	}
+
+	currentChunk()->code[offset] = (jump >> 8) & 0xff;
+	currentChunk()->code[offset + 1] = jump & 0xff;
 }
 
 static void initCompiler(Compiler *compiler){
@@ -249,7 +267,7 @@ static void addLocal(Token name){
     error("Too many local variables in function.");
     return;
   }
-  Local *local = current->locals[current->localCount++];
+  Local *local = &current->locals[current->localCount++];
   local->name = name;
   local->depth = -1;
 }
@@ -259,7 +277,7 @@ static void declareVariable(){
     return;
   }
 
-  Token *name = parser.previous;
+  Token *name = &parser.previous;
   for(int i = current->localCount; i >= 0; i--){
     Local *local = &current->locals[i];
     if(local->depth != -1 && local->depth < current->scopeDepth){
@@ -352,6 +370,31 @@ static void expressionStatement(){
     consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 }
 
+static void ifStatement(){
+	//Condition
+	consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
+	expression();
+	consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+	//Then branch
+	int thenJump = emitJump(OP_JUMP_IF_FALSE);
+	emitByte(OP_POP);
+	statement();
+
+	int elseJump = emitJump(OP_JUMP);
+
+	patchJump(thenJump);
+	emitByte(OP_POP);
+
+	//Else branch
+	if(match(TOKEN_ELSE)){
+		statement();
+	}
+	patchJump(elseJump);
+
+
+}
+
 static void varDeclaration(){
   uint8_t global = parseVariable("Expect variable name.");
   if(match(TOKEN_EQUAL)){
@@ -383,6 +426,8 @@ static void statement(){
     beginScope();
     block();
     endScope();
+  }else if(match(TOKEN_IF)){
+	  ifStatement();
   }else{
     expressionStatement();
   }
@@ -499,6 +544,8 @@ static void namedVariable(Token name, bool canAssign){
     arg = identifierConstant(&name);
     getOp = OP_GET_GLOBAL;
     getOp = OP_SET_GLOBAL;
+  }
+  
   if(canAssign && match(TOKEN_EQUAL)){
     expression();
     emitBytes(setOp, (uint8_t)arg);
