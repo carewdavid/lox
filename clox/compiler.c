@@ -318,6 +318,18 @@ static void defineVariable(uint8_t global){
 }
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+static void or_(bool canAssign){
+	int elseJump = emitJump(OP_JUMP_IF_FALSE);
+	int endJump = emitJump(OP_JUMP);
+
+	patchJump(elseJump);
+	emitByte(OP_POP); //Jump for short-circuit evaluation
+
+	parsePrecedence(PREC_OR);
+	patchJump(endJump);
+}
+
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 static void and_(bool canAssign){
 	int endJump = emitJump(OP_JUMP_IF_FALSE);
 	emitByte(OP_POP); //Jump for short-circuit evaluation
@@ -600,7 +612,7 @@ ParseRule rules[] = {
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN             
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_IF              
 		     { literal,     NULL,    PREC_NONE },       // TOKEN_NIL             
-		     { NULL,     NULL,    PREC_OR },         // TOKEN_OR              
+		     { NULL,     or_,    PREC_OR },         // TOKEN_OR              
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT           
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN          
 		     { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER           
