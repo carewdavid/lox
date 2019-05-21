@@ -236,7 +236,7 @@ static void parsePrecedence(Precedence precedence){
   if(prefixRule == NULL){
     error("Expect expression");
   }
-  bool canAssign = precedence < PREC_ASSIGN;
+  bool canAssign = precedence <= PREC_ASSIGN;
   prefixRule(canAssign);
 
   while(precedence <= getRule(parser.current.type)->precedence){
