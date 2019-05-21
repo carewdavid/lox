@@ -144,6 +144,18 @@ static void emitBytes(uint8_t byte1, uint8_t byte2){
   emitByte(byte2);
 }
 
+static void emitLoop(int loopStart){
+	emitByte(OP_LOOP);
+
+	int offset = currentChunk()->count - loopStart + 2;
+	if(offset > UINT16_MAX){
+		error("Loop body too large.");
+	}
+
+	emitByte((offset >> 8) & 0xff);
+	emitByte(offset & 0xff);
+}
+
 static int emitJump(uint8_t instruction){
 	emitByte(instruction);
 	//Placeholder address since we don't know the target yet.
@@ -390,6 +402,24 @@ static void expressionStatement(){
     consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 }
 
+static void whileStatement(){
+	int loopStart = currentChunk()->count;
+
+	consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.)");
+	expression();
+	consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+	int exitJump = emitJump(OP_JUMP_IF_FALSE);
+
+	emitByte(OP_POP);
+	statement();
+
+	emitLoop(loopStart);
+
+	patchJump(exitJump);
+	emitByte(OP_POP);
+}
+
 static void ifStatement(){
 	//Condition
 	consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
@@ -446,6 +476,8 @@ static void statement(){
     beginScope();
     block();
     endScope();
+  }else if(match(TOKEN_WHILE)){
+	  whileStatement();
   }else if(match(TOKEN_IF)){
 	  ifStatement();
   }else{
@@ -563,7 +595,7 @@ static void namedVariable(Token name, bool canAssign){
   }else{
     arg = identifierConstant(&name);
     getOp = OP_GET_GLOBAL;
-    getOp = OP_SET_GLOBAL;
+    setOp = OP_SET_GLOBAL;
   }
   
   if(canAssign && match(TOKEN_EQUAL)){
